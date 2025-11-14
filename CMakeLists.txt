@@ -9,6 +9,7 @@ project(human_point_follower)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  control_msgs
   cv_bridge
   dynamic_reconfigure
   geometry_msgs
@@ -173,6 +174,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/openpose_bridge.py
+  scripts/human_tracker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

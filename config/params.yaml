@@ -13,3 +13,32 @@ openpose:
 # Human detection
 human_detection:
   min_keypoints: 10  # Minimum keypoints to consider human detected
+
+# Human tracking with head movement (Phase 2.2)
+tracking:
+  control_rate: 20  # Hz - control loop frequency
+
+  # Image center target (will be updated from camera_info)
+  target_x: 320  # pixels (default for 640x480 image)
+  target_y: 240  # pixels
+
+  # PID controller for head pan (horizontal tracking)
+  pid_pan:
+    kp: 0.001      # Proportional gain
+    ki: 0.0001     # Integral gain
+    kd: 0.0005     # Derivative gain
+
+  # PID controller for head tilt (vertical tracking)
+  pid_tilt:
+    kp: 0.001      # Proportional gain
+    ki: 0.0001     # Integral gain
+    kd: 0.0005     # Derivative gain
+
+  # Safety limits
+  max_pan_velocity: 0.5   # rad/s
+  max_tilt_velocity: 0.5  # rad/s
+  min_confidence: 0.3     # Minimum keypoint confidence to track
+
+  # Deadband - ignore small errors to prevent jitter
+  deadband_x: 10  # pixels
+  deadband_y: 10  # pixels

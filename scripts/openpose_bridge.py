@@ -5,6 +5,7 @@ import os
 import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool
+from geometry_msgs.msg import PoseArray, Pose, Point
 from cv_bridge import CvBridge
 
 # Add OpenPose Python path
@@ -42,7 +43,12 @@ class OpenPoseOmniverseBridge:
         # Publishers
         self.detection_pub = rospy.Publisher('/openpose/human_detected', Bool, queue_size=1)
         self.skeleton_image_pub = rospy.Publisher('/openpose/skeleton_image', Image, queue_size=1)
-        
+        self.keypoints_pub = rospy.Publisher('/openpose/keypoints', PoseArray, queue_size=1)
+
+        # BODY_25 keypoint indices
+        self.NECK_IDX = 1
+        self.MIDHIP_IDX = 8
+
         rospy.loginfo(f"Subscribed to: {camera_topic}")
         
     def image_callback(self, msg):
@@ -56,15 +62,39 @@ class OpenPoseOmniverseBridge:
             
             # Check detection
             human_detected = False
+            keypoint_array = PoseArray()
+            keypoint_array.header.stamp = msg.header.stamp
+            keypoint_array.header.frame_id = "camera_rgb_optical_frame"
+
             if datum.poseKeypoints is not None and len(datum.poseKeypoints) > 0:
                 valid_keypoints = sum(1 for kp in datum.poseKeypoints[0] if kp[2] > 0.3)
                 human_detected = valid_keypoints >= self.min_keypoints
-                
+
                 if human_detected:
                     rospy.loginfo_throttle(1.0, f"Human detected with {valid_keypoints} keypoints")
-            
+
+                    # Extract Neck and MidHip keypoints for tracking
+                    keypoints = datum.poseKeypoints[0]
+
+                    # Neck keypoint
+                    if len(keypoints) > self.NECK_IDX and keypoints[self.NECK_IDX][2] > 0.3:
+                        neck_pose = Pose()
+                        neck_pose.position.x = keypoints[self.NECK_IDX][0]  # pixel x
+                        neck_pose.position.y = keypoints[self.NECK_IDX][1]  # pixel y
+                        neck_pose.position.z = keypoints[self.NECK_IDX][2]  # confidence
+                        keypoint_array.poses.append(neck_pose)
+
+                    # MidHip keypoint
+                    if len(keypoints) > self.MIDHIP_IDX and keypoints[self.MIDHIP_IDX][2] > 0.3:
+                        midhip_pose = Pose()
+                        midhip_pose.position.x = keypoints[self.MIDHIP_IDX][0]  # pixel x
+                        midhip_pose.position.y = keypoints[self.MIDHIP_IDX][1]  # pixel y
+                        midhip_pose.position.z = keypoints[self.MIDHIP_IDX][2]  # confidence
+                        keypoint_array.poses.append(midhip_pose)
+
             # Publish results
             self.detection_pub.publish(Bool(human_detected))
+            self.keypoints_pub.publish(keypoint_array)
             
             if datum.cvOutputData is not None:
                 skeleton_msg = self.bridge.cv2_to_imgmsg(datum.cvOutputData, "bgr8")

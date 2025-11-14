@@ -1,16 +1,21 @@
-<!-- ~/hsr_robocanes_omniverse/src/human_point_follower/launch/openpose_omniverse.launch -->
 <launch>
-  <!-- Camera topic for Omniverse HSR -->
-  <arg name="camera_topic" default="/hsrb/head_rgbd_sensor/rgb/image_rect_color"/>
-  
-  <!-- Depth topic for later use -->
-  <arg name="depth_topic" default="/hsrb/head_rgbd_sensor/depth_registered/image_rect_raw"/>
-  
+  <!-- Launch arguments -->
+  <arg name="enable_tracking" default="true" doc="Enable human tracking with head movement"/>
+
+  <!-- Load parameters from yaml file -->
+  <rosparam file="$(find human_point_follower)/config/params.yaml" command="load"/>
+
   <!-- OpenPose Bridge Node -->
-  <node name="openpose_bridge" 
-        pkg="human_point_follower" 
-        type="openpose_bridge.py" 
+  <node name="openpose_bridge"
+        pkg="human_point_follower"
+        type="openpose_bridge.py"
         output="screen">
-    <param name="camera_topic" value="$(arg camera_topic)"/>
+  </node>
+
+  <node if="$(arg enable_tracking)"
+        name="human_tracker"
+        pkg="human_point_follower"
+        type="human_tracker.py"
+        output="screen">
   </node>
 </launch>
