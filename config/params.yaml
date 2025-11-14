@@ -1,0 +1,15 @@
+# Camera topics for HSR in Omniverse
+camera:
+  rgb_topic: "/hsrb/head_rgbd_sensor/rgb/image_rect_color"
+  depth_topic: "/hsrb/head_rgbd_sensor/depth_registered/image_rect_raw"
+
+# OpenPose parameters
+openpose:
+  model_folder: "/home/csc752/hsr_robocanes_omniverse/src/openpose/models/"
+  model_pose: "BODY_25"
+  net_resolution: "320x176"  # Lower resolution for faster processing
+  min_confidence: 0.3
+
+# Human detection
+human_detection:
+  min_keypoints: 10  # Minimum keypoints to consider human detected
